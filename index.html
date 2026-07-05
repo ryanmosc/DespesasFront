@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DisPesas — Gestão Financeira</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+
+<!-- AUTH -->
+<div class="auth-screen" id="authScreen">
+  <div class="auth-box">
+    <div class="auth-header">
+      <div class="auth-logo">
+        <div class="auth-logo-icon">💰</div>
+        <div class="auth-logo-text">Dis<span>Pesas</span></div>
+      </div>
+      <div class="auth-tagline">Gestão financeira inteligente</div>
+      <div class="auth-tabs">
+        <div class="auth-tab active" id="tabLogin" onclick="switchAuthTab('login')">Entrar</div>
+        <div class="auth-tab" id="tabRegistro" onclick="switchAuthTab('registro')">Criar conta</div>
+      </div>
+    </div>
+    <div class="auth-body">
+      <div class="auth-form" id="formLogin">
+        <div class="auth-error" id="loginError"></div>
+        <div class="form-group"><label>E-mail</label><input type="text" id="loginEmail" placeholder="seu@email.com" onkeydown="if(event.key==='Enter')doLogin()"></div>
+        <div class="form-group"><label>Senha</label><input type="password" id="loginSenha" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
+        <button class="btn btn-primary" style="width:100%;justify-content:center;padding:12px" onclick="doLogin()" id="btnLogin">Entrar</button>
+      </div>
+      <div class="auth-form hidden" id="formRegistro">
+        <div class="auth-error" id="registroError"></div>
+        <div class="form-group"><label>Nome completo</label><input type="text" id="regNome" placeholder="Seu nome"></div>
+        <div class="form-group"><label>E-mail</label><input type="text" id="regEmail" placeholder="seu@email.com"></div>
+        <div class="form-group"><label>Senha <span style="color:var(--text3);font-size:10px;text-transform:none;font-weight:400">(mín. 8 caracteres)</span></label><input type="password" id="regSenha" placeholder="••••••••" onkeydown="if(event.key==='Enter')doRegistro()"></div>
+        <button class="btn btn-primary" style="width:100%;justify-content:center;padding:12px" onclick="doRegistro()" id="btnRegistro">Criar conta</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">📉</div>
+    <div>
+      <div class="logo-text">Dis<span>Pesas</span></div>
+      <span class="logo-sub">Gestão Financeira</span>
+    </div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-label">Principal</div>
+    <div class="nav-item active" onclick="navigate('dashboard')"><span class="ni">📊</span> Dashboard</div>
+    <div class="nav-item" onclick="navigate('despesas')"><span class="ni">📋</span> Despesas</div>
+    <div class="nav-item" onclick="navigate('parcelas')"><span class="ni">🔄</span> Parcelas em Aberto</div>
+    <div class="nav-item" onclick="navigate('investimentos')"><span class="ni">📈</span> Investimentos</div>
+    <div class="nav-label">Relatórios</div>
+    <div class="nav-item" onclick="navigate('relatorios')"><span class="ni">📉</span> Gastos por Mês</div>
+    <div class="nav-item" onclick="navigate('top5')"><span class="ni">🏆</span> Top 5 Ranking</div>
+    <div class="nav-item" onclick="navigate('categorias')"><span class="ni">🗂️</span> Por Categoria</div>
+    <div class="nav-item" onclick="navigate('comparativo')"><span class="ni">⚖️</span> Comparativo</div>
+  </nav>
+  <div class="sidebar-footer">
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <header class="topbar">
+    <div class="topbar-left">
+      <button class="btn-menu" onclick="toggleSidebar()">☰</button>
+      <span class="topbar-title" id="topbarTitle">Dashboard</span>
+    </div>
+    <div class="topbar-right">
+      <button class="btn btn-primary" onclick="openNewDespesa()"><span>+</span> Nova Despesa</button>
+      <div class="user-dropdown-wrap" id="userDropdownWrap">
+        <div class="user-chip" onclick="toggleUserDropdown()">
+          <div class="user-avatar" id="userAvatar">?</div>
+          <span class="user-chip-name" id="userChipName">Usuário</span>
+        </div>
+        <div class="user-dropdown" id="userDropdown">
+          <div class="user-dropdown-header">
+            <div class="user-dropdown-name" id="ddName">—</div>
+            <div class="user-dropdown-email" id="ddEmail">—</div>
+            <div style="margin-top:7px"><span class="role-badge" id="ddRole">—</span></div>
+          </div>
+          <div class="user-dropdown-item" onclick="toggleUserDropdown();navigate('dashboard')">📊 Dashboard</div>
+          <div class="user-dropdown-item" onclick="toggleUserDropdown();openChangePasswordModal()">🔑 Trocar Senha</div>
+          <div class="user-dropdown-item danger" onclick="doLogout()">🚪 Sair</div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="content">
+
+    <!-- DASHBOARD -->
+    <section class="section active" id="sec-dashboard">
+      <div class="section-head">
+        <div><div class="page-eyebrow">Visão Geral</div><h2 class="section-title">Dashboard</h2></div>
+        <div class="month-picker">
+          <select id="dashMes" onchange="loadDashboard()"></select>
+          <select id="dashAno" onchange="loadDashboard()"></select>
+        </div>
+      </div>
+      <div class="grid-4" id="saldoCards">
+        <div class="stat-card"><div class="loading"><div class="spinner"></div></div></div>
+        <div class="stat-card"><div class="loading"><div class="spinner"></div></div></div>
+        <div class="stat-card"><div class="loading"><div class="spinner"></div></div></div>
+        <div class="stat-card"><div class="loading"><div class="spinner"></div></div></div>
+      </div>
+      <div class="grid-2" style="margin-top:20px">
+        <div class="chart-card">
+          <div class="chart-card-header"><div><div class="chart-card-title">Receitas vs Despesas</div><div class="chart-card-sub">Mês selecionado</div></div></div>
+          <canvas id="chartMensal" height="220"></canvas>
+        </div>
+        <div class="chart-card">
+          <div class="chart-card-header"><div><div class="chart-card-title">Gastos por Categoria</div><div class="chart-card-sub">Distribuição do período</div></div></div>
+          <canvas id="chartCategoria" height="220"></canvas>
+        </div>
+      </div>
+      <div class="grid-2" style="margin-top:20px">
+        <div class="chart-card"><div class="chart-card-header"><div class="chart-card-title">Top 5 Maiores Gastos</div></div><canvas id="chartTop5Gastos" height="200"></canvas></div>
+        <div class="chart-card"><div class="chart-card-header"><div class="chart-card-title">Top 5 Categorias</div></div><canvas id="chartTop5Cat" height="200"></canvas></div>
+      </div>
+    </section>
+
+    <!-- DESPESAS -->
+    <section class="section" id="sec-despesas">
+      <div class="section-head">
+        <div><div class="page-eyebrow">Lançamentos</div><h2 class="section-title">Despesas & Receitas</h2></div>
+        <button class="btn btn-primary" onclick="openNewDespesa()">+ Nova Despesa</button>
+      </div>
+      <div class="filters">
+        <div class="filter-group"><label>Tipo</label><select id="fType" onchange="loadDespesas()"><option value="">Todos</option><option value="DESPESA">Despesa</option><option value="RECEITA">Receita</option></select></div>
+        <div class="filter-group"><label>Categoria</label><select id="fCategory" onchange="loadDespesas()"><option value="">Todas</option><option value="ALIMENTACAO">Alimentação</option><option value="TRANSPORTE">Transporte</option><option value="COMBUSTIVEL">Combustível</option><option value="MORADIA">Moradia</option><option value="AGUA">Água</option><option value="ENERGIA">Energia</option><option value="INTERNET">Internet</option><option value="TELEFONIA">Telefonia</option><option value="GAS">Gás</option><option value="CONDOMINIO">Condomínio</option><option value="SAUDE">Saúde</option><option value="FARMACIA">Farmácia</option><option value="EDUCACAO">Educação</option><option value="CUIDADOS_PESSOAIS">Cuidados Pessoais</option><option value="CURSOS">Cursos</option><option value="LAZER">Lazer</option><option value="VIAGEM">Viagem</option><option value="VESTUARIO">Vestuário</option><option value="PRESENTES">Presentes</option><option value="PETS">Pets</option><option value="ASSINATURAS">Assinaturas</option><option value="IMPOSTOS">Impostos</option><option value="SEGUROS">Seguros</option><option value="INVESTIMENTOS">Investimentos</option><option value="SALARIO">Salário</option><option value="MANUTENCAO_VEICULO">Manutenção Veículo</option><option value="ESCRITORIO">Escritório</option><option value="OUTROS">Outros</option></select></div>
+        <div class="filter-group"><label>Status</label><select id="fStatus" onchange="loadDespesas()"><option value="">Todos</option><option value="PENDENTE">Pendente</option><option value="PAGO">Pago</option><option value="CANCELADO">Cancelado</option></select></div>
+        <div class="filter-group"><label>Data início</label><input type="date" id="fDataInicio" onchange="loadDespesas()"></div>
+        <div class="filter-group"><label>Data fim</label><input type="date" id="fDataFim" onchange="loadDespesas()"></div>
+        <div class="filter-group">
+    <label>Ordenar por</label>
+    <select id="fOrdenacao" onchange="loadDespesas()">
+        <option value="">Padrão</option>
+        <option value="MAIS_RECENTES">Mais recentes</option>
+        <option value="MAIS_ANTIGAS">Mais antigas</option>
+        <option value="MAIOR_VALOR">Maior valor</option>
+        <option value="MENOR_VALOR">Menor valor</option>
+    </select>
+</div>
+        <button class="btn btn-ghost btn-sm" onclick="clearFilters()" style="align-self:flex-end">✕ Limpar</button>
+      </div>
+      <div class="card" style="padding:0;overflow:hidden">
+        <div class="table-wrap" id="despesasTable"><div class="loading"><div class="spinner"></div></div></div>
+        <div class="pagination" id="pagination" style="padding:14px 18px"></div>
+      </div>
+    </section>
+
+    <!-- PARCELAS -->
+    <section class="section" id="sec-parcelas">
+      <div class="section-head"><div><div class="page-eyebrow">Financiamentos</div><h2 class="section-title">Parcelas em Aberto</h2></div></div>
+      <div id="parcelasContent"><div class="loading"><div class="spinner"></div></div></div>
+    </section>
+
+    <!-- INVESTIMENTOS -->
+    <section class="section" id="sec-investimentos">
+      <div class="section-head">
+        <div><div class="page-eyebrow">Carteira</div><h2 class="section-title">Investimentos</h2></div>
+        <button class="btn btn-primary" onclick="openNewInvestimento()">+ Novo Investimento</button>
+      </div>
+
+      <!-- Cards resumo -->
+      <div class="grid-4" id="invSummaryCards" style="margin-bottom:20px">
+        <div class="stat-card"><div class="loading"><div class="spinner"></div></div></div>
+        <div class="stat-card"><div class="loading"><div class="spinner"></div></div></div>
+        <div class="stat-card"><div class="loading"><div class="spinner"></div></div></div>
+        <div class="stat-card"><div class="loading"><div class="spinner"></div></div></div>
+      </div>
+
+      <!-- Tabela -->
+      <div class="card" style="padding:0;overflow:hidden">
+        <div class="table-wrap" id="invTable"><div class="loading"><div class="spinner"></div></div></div>
+        <div class="pagination" id="invPagination" style="padding:14px 18px"></div>
+      </div>
+    </section>
+
+    <!-- RELATÓRIOS -->
+    <section class="section" id="sec-relatorios">
+      <div class="section-head"><div><div class="page-eyebrow">Histórico</div><h2 class="section-title">Gastos por Mês</h2></div></div>
+      <div class="chart-card"><canvas id="chartRelatorio" height="300"></canvas></div>
+    </section>
+
+    <!-- TOP 5 -->
+    <section class="section" id="sec-top5">
+      <div class="section-head">
+        <div><div class="page-eyebrow">Ranking</div><h2 class="section-title">Top 5</h2></div>
+        <div class="month-picker"><select id="top5Mes"></select><select id="top5Ano" onchange="loadTop5()"></select></div>
+      </div>
+      <div class="grid-2">
+        <div class="chart-card"><div class="chart-card-title" style="margin-bottom:16px">Maiores Gastos</div><canvas id="chartTop5GastosPage" height="220"></canvas></div>
+        <div class="chart-card"><div class="chart-card-title" style="margin-bottom:16px">Maiores Categorias</div><canvas id="chartTop5CatPage" height="220"></canvas></div>
+      </div>
+      <div class="grid-2" style="margin-top:20px">
+        <div class="card" id="top5GastosList"></div>
+        <div class="card" id="top5CatList"></div>
+      </div>
+    </section>
+
+    <!-- CATEGORIAS -->
+    <section class="section" id="sec-categorias">
+      <div class="section-head">
+        <div><div class="page-eyebrow">Análise</div><h2 class="section-title">Por Categoria</h2></div>
+        <div class="month-picker"><select id="catMes"></select><select id="catAno" onchange="loadCategorias()"></select></div>
+      </div>
+      <div class="grid-2">
+        <div class="chart-card"><canvas id="chartCatPage" height="260"></canvas></div>
+        <div class="card" id="catList"></div>
+      </div>
+    </section>
+
+    <!-- COMPARATIVO -->
+    <section class="section" id="sec-comparativo">
+      <div class="section-head"><div><div class="page-eyebrow">Análise</div><h2 class="section-title">Comparativo entre Meses</h2></div></div>
+      <div class="grid-2" style="margin-bottom:20px">
+        <div class="card">
+          <div class="stat-label" style="margin-bottom:14px">📅 Período A</div>
+          <div style="display:flex;gap:12px">
+            <div class="filter-group" style="flex:1"><label>Mês</label><select id="cmpMesA"></select></div>
+            <div class="filter-group" style="flex:1"><label>Ano</label><select id="cmpAnoA"></select></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="stat-label" style="margin-bottom:14px">📅 Período B</div>
+          <div style="display:flex;gap:12px">
+            <div class="filter-group" style="flex:1"><label>Mês</label><select id="cmpMesB"></select></div>
+            <div class="filter-group" style="flex:1"><label>Ano</label><select id="cmpAnoB"></select></div>
+          </div>
+        </div>
+      </div>
+      <div style="text-align:center;margin-bottom:28px">
+        <button class="btn btn-primary" style="padding:11px 28px;font-size:14px" onclick="loadComparativo()">⚖️ Comparar Períodos</button>
+      </div>
+      <div id="comparativoResult"></div>
+    </section>
+
+  </div>
+</main>
+
+<!-- MODAL DESPESA -->
+<div class="modal-overlay" id="modalDespesa">
+  <div class="modal">
+    <div class="modal-header"><span id="modalTitle">Nova Despesa</span><button class="modal-close" onclick="closeModal('modalDespesa')">×</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="despesaId">
+      <div class="form-group"><label>Descrição *</label><input type="text" id="fDesc" placeholder="Ex: Conta de luz"></div>
+      <div class="form-row">
+        <div class="form-group"><label>Valor (R$) *</label><input type="number" id="fValue" step="0.01" placeholder="0,00"></div>
+        <div class="form-group"><label>Data *</label><input type="date" id="fDate"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Tipo *</label><select id="fTypeModal"><option value="DESPESA">Despesa</option><option value="RECEITA">Receita</option></select></div>
+        <div class="form-group"><label>Categoria *</label><select id="fCatModal"><option value="ALIMENTACAO">Alimentação</option><option value="TRANSPORTE">Transporte</option><option value="COMBUSTIVEL">Combustível</option><option value="MORADIA">Moradia</option><option value="AGUA">Água</option><option value="ENERGIA">Energia</option><option value="INTERNET">Internet</option><option value="TELEFONIA">Telefonia</option><option value="GAS">Gás</option><option value="CONDOMINIO">Condomínio</option><option value="SAUDE">Saúde</option><option value="FARMACIA">Farmácia</option><option value="EDUCACAO">Educação</option><option value="CUIDADOS_PESSOAIS">Cuidados Pessoais</option><option value="CURSOS">Cursos</option><option value="LAZER">Lazer</option><option value="VIAGEM">Viagem</option><option value="VESTUARIO">Vestuário</option><option value="PRESENTES">Presentes</option><option value="PETS">Pets</option><option value="ASSINATURAS">Assinaturas</option><option value="IMPOSTOS">Impostos</option><option value="SEGUROS">Seguros</option><option value="INVESTIMENTOS">Investimentos</option><option value="SALARIO">Salário</option><option value="MANUTENCAO_VEICULO">Manutenção Veículo</option><option value="ESCRITORIO">Escritório</option><option value="OUTROS">Outros</option></select></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Pagamento *</label><select id="fPayment"><option value="DINHEIRO">Dinheiro</option><option value="CREDITO">Crédito</option><option value="DEBITO">Débito</option><option value="PIX">PIX</option><option value="BOLETO">Boleto</option></select></div>
+        <div class="form-group"><label>Status *</label><select id="fStatusModal"><option value="PENDENTE">Pendente</option><option value="PAGO">Pago</option><option value="CANCELADO">Cancelado</option></select></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Nº Parcelas</label><input type="number" id="fInstallments" min="1" placeholder="1"></div>
+        <div class="form-group"><label>Parcela Atual</label><input type="number" id="fInstallmentNum" min="1" placeholder="1"></div>
+      </div>
+      <label class="checkbox-label"><input type="checkbox" id="fRecurrent"> Recorrente (mensal)</label>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modalDespesa')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveDespesa()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DETALHE DESPESA -->
+<div class="modal-overlay" id="modalDetalhe">
+  <div class="modal" style="max-width:600px">
+    <div class="modal-header"><span>Detalhes</span><button class="modal-close" onclick="closeModal('modalDetalhe')">×</button></div>
+    <div class="modal-body" id="detalheBody"></div>
+    <div class="modal-footer" id="detalheFooter"></div>
+  </div>
+</div>
+
+<!-- MODAL INVESTIMENTO -->
+<div class="modal-overlay" id="modalInvestimento">
+  <div class="modal" style="max-width:580px">
+    <div class="modal-header">
+      <span id="invModalTitle">Novo Investimento</span>
+      <button class="modal-close" onclick="closeModal('modalInvestimento')">×</button>
+    </div>
+
+    <div class="modal-body">
+
+      <input type="hidden" id="invId">
+
+      <div class="form-group">
+        <label>Nome *</label>
+        <input type="text" id="invNome" placeholder="Ex: Tesouro Direto 2026">
+      </div>
+
+      <div class="form-row">
+
+        <div class="form-group">
+          <label>Tipo *</label>
+
+          <select id="invTipo">
+              <option value="TESOURO_DIRETO">Tesouro Direto</option>
+              <option value="CDB">CDB</option>
+              <option value="LCI">LCI</option>
+              <option value="LCA">LCA</option>
+              <option value="DEBENTURE">Debênture</option>
+              <option value="CRI">CRI</option>
+              <option value="CRA">CRA</option>
+              <option value="POUPANCA">Poupança</option>
+
+              <option value="ACOES">Ações</option>
+              <option value="FIIS">FIIs</option>
+              <option value="ETFS">ETFs</option>
+              <option value="BDRS">BDRs</option>
+
+              <option value="FUNDOS_DE_INVESTIMENTO">Fundos de Investimento</option>
+
+              <option value="CRIPTOMOEDAS">Criptomoedas</option>
+
+              <option value="IMOVEIS">Imóveis</option>
+
+              <option value="PREVIDENCIA_PRIVADA">Previdência Privada</option>
+
+              <option value="OURO">Ouro</option>
+              <option value="PRATA">Prata</option>
+              <option value="COMMODITIES">Commodities</option>
+
+              <option value="CAMBIO">Câmbio</option>
+
+              <option value="COE">COE</option>
+
+              <option value="OUTROS">Outros</option>
+          </select>
+
+        </div>
+
+        <div class="form-group">
+          <label>Instituição *</label>
+          <input type="text" id="invInstituicao" placeholder="Ex: XP, Nubank...">
+        </div>
+
+      </div>
+
+      <div class="form-row">
+
+        <div class="form-group">
+          <label>Valor Inicial (R$) *</label>
+          <input type="number" id="invValorInicial" step="0.01" placeholder="0,00">
+        </div>
+
+        <div class="form-group">
+          <label>Valor Atual (R$)</label>
+          <input type="number" id="invValorAtual" step="0.01" placeholder="Igual ao inicial, se vazio">
+        </div>
+
+      </div>
+
+      <div class="form-row">
+
+        <div class="form-group">
+          <label>Data Início *</label>
+          <input type="date" id="invDataInicio">
+        </div>
+
+        <div class="form-group">
+          <label>Data Vencimento</label>
+          <input type="date" id="invDataVencimento">
+        </div>
+
+      </div>
+
+      <div class="form-group">
+
+        <label style="display:flex;align-items:center;gap:8px;">
+            Rentabilidade (% CDI)
+
+            <span
+                class="help-icon"
+                onclick="abrirAjudaCDI()"
+                title="Como funciona?"
+            >?</span>
+
+            <span style="font-size:10px;color:var(--text3);font-weight:400;text-transform:none;">
+                opcional (100, 110, 115...)
+            </span>
+        </label>
+
+        <input
+            type="number"
+            id="invTaxa"
+            step="0.01"
+            placeholder="Ex: 115">
+
+      </div>
+
+      <div class="form-group">
+        <label>Status *</label>
+
+        <select id="invStatus">
+          <option value="ATIVO">Ativo</option>
+          <option value="ENCERRADO">Encerrado</option>
+          <option value="VENCIDO">Vencido</option>
+          <option value="RESGATADO">Resgatado</option>
+        </select>
+
+      </div>
+
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modalInvestimento')">
+        Cancelar
+      </button>
+
+      <button class="btn btn-primary" onclick="saveInvestimento()">
+        Salvar
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalAjudaCDI">
+    <div class="modal" style="max-width:720px">
+
+        <div class="modal-header">
+            <span>📈 Calculadora de Rentabilidade CDI</span>
+            <button class="modal-close" onclick="fecharAjudaCDI()">×</button>
+        </div>
+
+        <div class="modal-body" style="line-height:1.7">
+
+            <p>
+                Muitos investimentos informam a rentabilidade como
+                <strong>% do CDI</strong>.
+            </p>
+
+            <p>
+                Exemplo:
+                <strong>100%</strong>,
+                <strong>110%</strong>,
+                <strong>115%</strong>,
+                <strong>120%</strong> do CDI.
+            </p>
+
+            <div style="
+                background:var(--surface2);
+                padding:18px;
+                border-radius:12px;
+                margin:20px 0;
+            ">
+
+                <h3 style="margin-bottom:15px">
+                    🧮 Calculadora
+                </h3>
+
+                <div class="form-row">
+
+                    <div class="form-group">
+                        <label>CDI Atual (% ao ano)</label>
+
+                        <input
+                            type="number"
+                            id="calcCDI"
+                            step="0.01"
+                            value="15"
+                            placeholder="15.00">
+                    </div>
+
+                    <div class="form-group">
+                        <label>% do CDI</label>
+
+                        <input
+                            type="number"
+                            id="calcPercentual"
+                            step="0.01"
+                            placeholder="115">
+                    </div>
+
+                </div>
+
+                <button
+                    class="btn btn-primary"
+                    style="width:100%;margin-top:8px"
+                    onclick="calcularCDI()">
+
+                    Calcular
+
+                </button>
+
+            </div>
+
+            <div id="resultadoCDI" style="display:none">
+
+                <div style="
+                    background:#1b1b1f;
+                    border-radius:12px;
+                    padding:20px;
+                    border:1px solid rgba(255,107,0,.25);
+                ">
+
+                    <h3 style="margin-bottom:20px">
+                        ✅ Resultado
+                    </h3>
+
+                    <div style="margin-bottom:15px">
+                        <strong>Rentabilidade Anual</strong>
+                    </div>
+
+                    <div
+                        id="resultadoAnual"
+                        style="
+                            font-size:32px;
+                            color:var(--orange2);
+                            font-weight:bold;
+                            text-align:center;
+                            margin-bottom:25px;
+                        ">
+                    </div>
+
+                    <div style="margin-bottom:15px">
+                        <strong>Rentabilidade Mensal</strong>
+                    </div>
+
+                    <div
+                        id="resultadoMensal"
+                        style="
+                            font-size:26px;
+                            color:var(--green);
+                            font-weight:bold;
+                            text-align:center;
+                            margin-bottom:30px;
+                        ">
+                    </div>
+
+                    <button
+                        class="btn btn-success"
+                        style="width:100%"
+                        onclick="usarValorCDI()">
+
+                        ✅ Usar este valor no investimento
+
+                    </button>
+
+                </div>
+
+            </div>
+
+            <hr style="margin:25px 0">
+
+            <h3>Como funciona?</h3>
+
+            <p>
+                Se o CDI estiver em
+                <strong>15%</strong>
+                e um investimento render
+                <strong>115% do CDI</strong>,
+                ele renderá:
+            </p>
+
+            <div style="
+                text-align:center;
+                font-size:22px;
+                color:var(--orange2);
+                font-weight:bold;
+                margin:18px 0;
+            ">
+
+                15 × 1,15 = 17,25% ao ano
+
+            </div>
+
+            <p>
+                Depois essa taxa é convertida automaticamente para o equivalente mensal usando juros compostos.
+            </p>
+
+        </div>
+
+    </div>
+</div>
+
+<!-- MODAL DETALHE INVESTIMENTO -->
+<div class="modal-overlay" id="modalInvDetalhe">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-header"><span>Detalhes do Investimento</span><button class="modal-close" onclick="closeModal('modalInvDetalhe')">×</button></div>
+    <div class="modal-body" id="invDetalheBody"></div>
+    <div class="modal-footer" id="invDetalheFooter"></div>
+  </div>
+</div>
+
+<!-- MODAL TROCAR SENHA -->
+<div class="modal-overlay" id="modalTrocarSenha">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-header"><span>Trocar Senha</span><button class="modal-close" onclick="closeModal('modalTrocarSenha')">×</button></div>
+    <div class="modal-body">
+
+      <!-- PASSO 1: solicitar código -->
+      <div id="tsPasso1">
+        <p style="font-size:13.5px;color:var(--text2);line-height:1.5">
+          Vamos enviar um código de verificação para o seu e-mail cadastrado. Use o código para confirmar a troca da sua senha.
+        </p>
+        <div class="auth-error" id="tsErro1" style="margin-top:14px"></div>
+      </div>
+
+      <!-- PASSO 2: código + nova senha -->
+      <div id="tsPasso2" class="hidden">
+        <p style="font-size:13px;color:var(--text3);margin-bottom:4px">
+          Enviamos um código para o seu e-mail. Ele expira em 10 minutos.
+        </p>
+        <div class="auth-error" id="tsErro2"></div>
+        <div class="form-group"><label>Código</label><input type="text" id="tsCodigo" placeholder="Digite o código recebido" maxlength="10"></div>
+        <div class="form-group"><label>Nova senha</label><input type="password" id="tsNovaSenha" placeholder="mín. 8 caracteres"></div>
+        <div class="form-group"><label>Confirmar nova senha</label><input type="password" id="tsConfirmarSenha" placeholder="repita a nova senha" onkeydown="if(event.key==='Enter')confirmarTrocaSenha()"></div>
+        <div style="text-align:right">
+          <button class="btn btn-ghost btn-sm" onclick="solicitarCodigoSenha()" id="btnReenviarCodigo" style="margin-top:2px">🔄 Reenviar código</button>
+        </div>
+      </div>
+
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modalTrocarSenha')">Cancelar</button>
+      <button class="btn btn-primary" id="btnTsAcao" onclick="solicitarCodigoSenha()">Enviar código</button>
+    </div>
+  </div>
+</div>
+
+
+<div id="toast"></div>
+<div id="popupTeste" class="popup-teste">
+    <strong>💬 Ajude a melhorar o DisPesas!</strong><br><br>
+
+    Encontrou algum bug ou tem alguma sugestão de melhoria?<br>
+    Entre em contato conosco.<br><br>
+
+    📱 <strong>WhatsApp:</strong> (16) 99175-9831<br>
+    📧 <strong>E-mail:</strong> ryanoliveiramosc.com.098@gmail.com
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
