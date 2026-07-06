@@ -224,70 +224,30 @@ const catIcon={ALIMENTACAO:'🍽️',TRANSPORTE:'🚗',COMBUSTIVEL:'⛽',MORADIA
 const monthNames=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
 
 const invTipoLabel = {
-    TESOURO_DIRETO: 'Tesouro Direto',
     CDB: 'CDB',
     LCI: 'LCI',
     LCA: 'LCA',
-    DEBENTURE: 'Debênture',
     CRI: 'CRI',
     CRA: 'CRA',
+    DEBENTURE: 'Debênture',
     POUPANCA: 'Poupança',
-
-    ACOES: 'Ações',
-    FIIS: 'FIIs',
-    ETFS: 'ETFs',
-    BDRS: 'BDRs',
-
-    FUNDOS_DE_INVESTIMENTO: 'Fundos de Investimento',
-
-    CRIPTOMOEDAS: 'Criptomoedas',
-
-    IMOVEIS: 'Imóveis',
-
-    PREVIDENCIA_PRIVADA: 'Previdência Privada',
-
-    OURO: 'Ouro',
-    PRATA: 'Prata',
-    COMMODITIES: 'Commodities',
-
-    CAMBIO: 'Câmbio',
-
+    FUNDOS_DI: 'Fundos DI',
     COE: 'COE',
-
+    TESOURO_SELIC: 'Tesouro Selic',
     OUTROS: 'Outros'
 };
 
 const invTipoIcon = {
-    TESOURO_DIRETO: '🇧🇷',
     CDB: '🏦',
     LCI: '🏠',
     LCA: '🌾',
-    DEBENTURE: '📜',
     CRI: '🏢',
     CRA: '🌱',
+    DEBENTURE: '📜',
     POUPANCA: '🐷',
-
-    ACOES: '📈',
-    FIIS: '🏢',
-    ETFS: '🌍',
-    BDRS: '🇺🇸',
-
-    FUNDOS_DE_INVESTIMENTO: '📂',
-
-    CRIPTOMOEDAS: '₿',
-
-    IMOVEIS: '🏠',
-
-    PREVIDENCIA_PRIVADA: '🛡️',
-
-    OURO: '🥇',
-    PRATA: '🥈',
-    COMMODITIES: '⛽',
-
-    CAMBIO: '💱',
-
+    FUNDOS_DI: '📂',
     COE: '📄',
-
+    TESOURO_SELIC: '🇧🇷',
     OUTROS: '📦'
 };
 
@@ -498,19 +458,11 @@ function renderInvSummary(rows){
   const rentab=totalInicial>0?((totalAtual-totalInicial)/totalInicial*100):0;
   const lucro=totalAtual-totalInicial;
 
-  // Projeção anual — soma dos rendimentos esperados de cada investimento com taxa
-  const projecaoAnual = rows
-    .filter(r => r.taxaRendimentoAnual && r.status === 'ATIVO')
-    .reduce((s, r) => {
-      const taxa = parseFloat(r.taxaRendimentoAnual) / 100;
-      return s + (parseFloat(r.valorAtual) * taxa);
-    }, 0);
-
   document.getElementById('invSummaryCards').innerHTML=`
     <div class="stat-card"><div class="stat-icon purple">📊</div><div class="stat-label">Total Investido</div><div class="stat-value purple">${formatBRL(totalInicial)}</div><div class="stat-sub">Valor inicial aportado</div></div>
     <div class="stat-card"><div class="stat-icon ${totalAtual>=totalInicial?'green':'red'}">💹</div><div class="stat-label">Valor Atual</div><div class="stat-value ${totalAtual>=totalInicial?'green':'red'}">${formatBRL(totalAtual)}</div><div class="stat-sub">Posição atual da carteira</div></div>
-    <div class="stat-card"><div class="stat-icon ${lucro>=0?'green':'red'}">📈</div><div class="stat-label">Lucro / Prejuízo</div><div class="stat-value ${lucro>=0?'green':'red'}">${formatBRL(lucro)}</div><div class="stat-sub">${rentab>=0?'+':''}${rentab.toFixed(2)}% de rentabilidade</div></div>
-    <div class="stat-card"><div class="stat-icon green">🎯</div><div class="stat-label">Projeção Anual</div><div class="stat-value green">${formatBRL(projecaoAnual)}</div><div class="stat-sub">Rendimento estimado em 12 meses</div></div>
+    <div class="stat-card"><div class="stat-icon ${lucro>=0?'green':'red'}">📈</div><div class="stat-label">Rendimento Acumulado</div><div class="stat-value ${lucro>=0?'green':'red'}">${formatBRL(lucro)}</div><div class="stat-sub">${rentab>=0?'+':''}${rentab.toFixed(2)}% de rentabilidade real</div></div>
+    <div class="stat-card"><div class="stat-icon orange">🟢</div><div class="stat-label">Ativos</div><div class="stat-value orange">${ativos.length}</div><div class="stat-sub">de ${rows.length} investimentos na página</div></div>
   `;
 }
 
@@ -522,7 +474,7 @@ function renderInvTable(rows){
   document.getElementById('invTable').innerHTML=`
     <table>
       <thead><tr>
-        <th>Nome</th><th>Tipo</th><th>Instituição</th><th>Valor Inicial</th><th>Valor Atual</th><th>Rentab.</th><th>Taxa/Ano</th><th>Vencimento</th><th>Status</th><th>Ações</th>
+          <th>Nome</th><th>Tipo</th><th>Instituição</th><th>Valor Inicial</th><th>Valor Atual</th><th>Rentab.</th><th>% CDI</th><th>Vencimento</th><th>Status</th><th>Ações</th>
       </tr></thead>
       <tbody>
         ${rows.map(r=>{
@@ -536,7 +488,7 @@ function renderInvTable(rows){
             <td style="font-weight:600">${formatBRL(r.valorInicial)}</td>
             <td style="font-weight:700;color:${va>=vi?'var(--green)':'var(--red)'}">${formatBRL(r.valorAtual)}</td>
             <td style="font-weight:700;color:${rentabColor}">${rentab>=0?'+':''}${rentab.toFixed(2)}%</td>
-            <td style="color:var(--green);font-weight:600">${r.taxaRendimentoAnual ? r.taxaRendimentoAnual+'%' : '—'}</td>
+<td style="color:var(--green);font-weight:600">${r.percentualCdi ? r.percentualCdi+'% CDI' : '100% Selic'}</td>
             <td style="color:var(--text3)">${formatDate(r.dataVencimento)}</td>
             <td><span class="badge ${invStatusBadge[r.status]||'badge-gray'}">${r.status}</span></td>
             <td><div style="display:flex;gap:4px">
@@ -559,10 +511,10 @@ function changeInvPage(d){invPage=Math.max(0,Math.min(invTotalPages-1,invPage+d)
 function openNewInvestimento(){
   document.getElementById('invModalTitle').textContent='Novo Investimento';
   document.getElementById('invId').value='';
-  ['invNome','invInstituicao','invValorInicial','invValorAtual','invTaxa'].forEach(id=>document.getElementById(id).value='');
+  ['invNome','invInstituicao','invValorInicial','invValorAtual','invPercentualCdi'].forEach(id=>document.getElementById(id).value='');
   ['invDataInicio','invDataVencimento'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('invDataInicio').value=new Date().toISOString().split('T')[0];
-  document.getElementById('invTipo').value='TESOURO_DIRETO';
+  document.getElementById('invTipo').value='TESOURO_SELIC';
   document.getElementById('invStatus').value='ATIVO';
   openModal('modalInvestimento');
 }
@@ -580,7 +532,7 @@ async function editInvestimento(id){
     document.getElementById('invDataInicio').value=r.dataInicio||'';
     document.getElementById('invDataVencimento').value=r.dataVencimento||'';
     document.getElementById('invStatus').value=r.status||'ATIVO';
-    document.getElementById('invTaxa').value=r.taxaRendimentoAnual||''; // ← novo
+    document.getElementById('invPercentualCdi').value=r.percentualCdi||'';
     openModal('modalInvestimento');
   }catch(e){toast('Erro: '+e.message,'error');}
 }
@@ -596,7 +548,7 @@ async function saveInvestimento(){
     dataInicio:document.getElementById('invDataInicio').value||null,
     dataVencimento:document.getElementById('invDataVencimento').value||null,
     status:document.getElementById('invStatus').value,
-    taxaRendimentoAnual:parseFloat(document.getElementById('invTaxa').value)||null, // ← novo
+    percentualCdi:parseFloat(document.getElementById('invPercentualCdi').value)||null,
   };
   if(!body.nome||!body.valorInicial||!body.instituicao||!body.dataInicio){toast('Preencha nome, instituição, data início e valor inicial.','error');return;}
   try{
@@ -618,10 +570,7 @@ async function viewInvestimento(id){
     const vi=parseFloat(r.valorInicial)||0, va=parseFloat(r.valorAtual)||0;
     const lucro=va-vi, rentab=vi>0?((lucro/vi)*100):0;
 
-    // Calcula rendimento diário estimado se tiver taxa
-    const rendDiario = r.taxaRendimentoAnual
-      ? va * (Math.pow(1 + parseFloat(r.taxaRendimentoAnual)/100, 1/252) - 1)
-      : null;
+   
 
     document.getElementById('invDetalheBody').innerHTML=`
       <div class="detail-row"><span class="detail-label">ID</span><span class="detail-value" style="color:var(--text3)">#${r.id}</span></div>
@@ -631,21 +580,21 @@ async function viewInvestimento(id){
       <div class="detail-row"><span class="detail-label">Valor Inicial</span><span class="detail-value">${formatBRL(r.valorInicial)}</span></div>
       <div class="detail-row"><span class="detail-label">Valor Atual</span><span class="detail-value" style="font-size:18px;font-weight:800;color:${va>=vi?'var(--green)':'var(--red)'}">${formatBRL(r.valorAtual)}</span></div>
       <div class="detail-row"><span class="detail-label">Lucro / Prejuízo</span><span class="detail-value" style="font-weight:700;color:${lucro>=0?'var(--green)':'var(--red)'}">${formatBRL(lucro)} (${rentab>=0?'+':''}${rentab.toFixed(2)}%)</span></div>
-
-      ${r.taxaRendimentoAnual ? `
-        <div class="detail-row">
-          <span class="detail-label">Taxa Anual</span>
-          <span class="detail-value" style="color:var(--green);font-weight:700">📈 ${r.taxaRendimentoAnual}% ao ano</span>
-        </div>
-        <div class="detail-row">
-          <span class="detail-label">Rendimento Diário Est.</span>
-          <span class="detail-value" style="color:var(--green)">≈ ${formatBRL(rendDiario)} / dia útil</span>
-        </div>
-        <div class="detail-row">
-          <span class="detail-label">Projeção 12 meses</span>
-          <span class="detail-value" style="color:var(--green);font-weight:700">≈ ${formatBRL(va * parseFloat(r.taxaRendimentoAnual) / 100)}</span>
-        </div>
-      ` : ''}
+${r.percentualCdi ? `
+  <div class="detail-row">
+    <span class="detail-label">Indexador</span>
+    <span class="detail-value" style="color:var(--green);font-weight:700">📈 ${r.percentualCdi}% do CDI</span>
+  </div>
+` : `
+  <div class="detail-row">
+    <span class="detail-label">Indexador</span>
+    <span class="detail-value" style="color:var(--text3)">100% da Selic (padrão)</span>
+  </div>
+`}
+<div class="detail-row">
+  <span class="detail-label">Rendimento Acumulado</span>
+  <span class="detail-value" style="color:${r.rendimentoAbsoluto>=0?'var(--green)':'var(--red)'};font-weight:700">${formatBRL(r.rendimentoAbsoluto)} (${r.rendimentoPercent>=0?'+':''}${r.rendimentoPercent}%)</span>
+</div>
 
       ${r.ultimoRendimentoCalculado ? `
         <div class="detail-row">
@@ -856,44 +805,3 @@ window.addEventListener("load", () => {
 });
 
 
-let taxaAnualCalculada = 0;
-
-function abrirAjudaCDI(){
-    document.getElementById("modalAjudaCDI").classList.add("open");
-}
-
-function fecharAjudaCDI(){
-    document.getElementById("modalAjudaCDI").classList.remove("open");
-}
-
-function calcularCDI(){
-
-    const cdi = parseFloat(document.getElementById("calcCDI").value);
-    const percentual = parseFloat(document.getElementById("calcPercentual").value);
-
-    if(isNaN(cdi) || isNaN(percentual)){
-        alert("Informe o CDI e o percentual.");
-        return;
-    }
-
-    taxaAnualCalculada = cdi * (percentual / 100);
-
-    const taxaMensal =
-        (Math.pow(1 + taxaAnualCalculada/100, 1/12) - 1) * 100;
-
-    document.getElementById("resultadoCDI").style.display="block";
-
-    document.getElementById("resultadoAnual").innerHTML =
-        taxaAnualCalculada.toFixed(2).replace(".", ",") + "% ao ano";
-
-    document.getElementById("resultadoMensal").innerHTML =
-        taxaMensal.toFixed(2).replace(".", ",") + "% ao mês";
-}
-
-function usarValorCDI(){
-
-    document.getElementById("invTaxa").value =
-        taxaAnualCalculada.toFixed(2);
-
-    fecharAjudaCDI();
-}

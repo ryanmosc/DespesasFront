@@ -169,7 +169,7 @@
     <!-- INVESTIMENTOS -->
     <section class="section" id="sec-investimentos">
       <div class="section-head">
-        <div><div class="page-eyebrow">Carteira</div><h2 class="section-title">Investimentos</h2></div>
+        <div><div class="page-eyebrow">Carteira</div><h2 class="section-title">Investimentos <span class="help-icon" onclick="openModal('modalInfoRendimento')" title="Como funciona o cálculo">?</span></h2></div>
         <button class="btn btn-primary" onclick="openNewInvestimento()">+ Novo Investimento</button>
       </div>
 
@@ -313,39 +313,19 @@
         <div class="form-group">
           <label>Tipo *</label>
 
-          <select id="invTipo">
-              <option value="TESOURO_DIRETO">Tesouro Direto</option>
-              <option value="CDB">CDB</option>
-              <option value="LCI">LCI</option>
-              <option value="LCA">LCA</option>
-              <option value="DEBENTURE">Debênture</option>
-              <option value="CRI">CRI</option>
-              <option value="CRA">CRA</option>
-              <option value="POUPANCA">Poupança</option>
-
-              <option value="ACOES">Ações</option>
-              <option value="FIIS">FIIs</option>
-              <option value="ETFS">ETFs</option>
-              <option value="BDRS">BDRs</option>
-
-              <option value="FUNDOS_DE_INVESTIMENTO">Fundos de Investimento</option>
-
-              <option value="CRIPTOMOEDAS">Criptomoedas</option>
-
-              <option value="IMOVEIS">Imóveis</option>
-
-              <option value="PREVIDENCIA_PRIVADA">Previdência Privada</option>
-
-              <option value="OURO">Ouro</option>
-              <option value="PRATA">Prata</option>
-              <option value="COMMODITIES">Commodities</option>
-
-              <option value="CAMBIO">Câmbio</option>
-
-              <option value="COE">COE</option>
-
-              <option value="OUTROS">Outros</option>
-          </select>
+        <select id="invTipo">
+            <option value="CDB">CDB</option>
+            <option value="LCI">LCI</option>
+            <option value="LCA">LCA</option>
+            <option value="CRI">CRI</option>
+            <option value="CRA">CRA</option>
+            <option value="DEBENTURE">Debênture</option>
+            <option value="POUPANCA">Poupança</option>
+            <option value="FUNDOS_DI">Fundos DI</option>
+            <option value="COE">COE</option>
+            <option value="TESOURO_SELIC">Tesouro Selic</option>
+            <option value="OUTROS">Outros</option>
+        </select>
 
         </div>
 
@@ -368,6 +348,14 @@
           <input type="number" id="invValorAtual" step="0.01" placeholder="Igual ao inicial, se vazio">
         </div>
 
+     <div class="form-group">
+  <label>% do CDI (opcional) <span class="help-icon" onclick="openModal('modalInfoRendimento')" title="Como funciona o cálculo">?</span></label>
+  <input type="number" id="invPercentualCdi" step="0.01" placeholder="Ex: 115 para 115% do CDI">
+  <span style="font-size:11px;color:var(--text3);margin-top:4px">
+    Deixe vazio para usar 100% da Selic automaticamente (padrão do Tesouro Selic).
+  </span>
+</div>
+
       </div>
 
       <div class="form-row">
@@ -384,30 +372,7 @@
 
       </div>
 
-      <div class="form-group">
-
-        <label style="display:flex;align-items:center;gap:8px;">
-            Rentabilidade (% CDI)
-
-            <span
-                class="help-icon"
-                onclick="abrirAjudaCDI()"
-                title="Como funciona?"
-            >?</span>
-
-            <span style="font-size:10px;color:var(--text3);font-weight:400;text-transform:none;">
-                opcional (100, 110, 115...)
-            </span>
-        </label>
-
-        <input
-            type="number"
-            id="invTaxa"
-            step="0.01"
-            placeholder="Ex: 115">
-
-      </div>
-
+      
       <div class="form-group">
         <label>Status *</label>
 
@@ -435,164 +400,7 @@
   </div>
 </div>
 
-<div class="modal-overlay" id="modalAjudaCDI">
-    <div class="modal" style="max-width:720px">
 
-        <div class="modal-header">
-            <span>📈 Calculadora de Rentabilidade CDI</span>
-            <button class="modal-close" onclick="fecharAjudaCDI()">×</button>
-        </div>
-
-        <div class="modal-body" style="line-height:1.7">
-
-            <p>
-                Muitos investimentos informam a rentabilidade como
-                <strong>% do CDI</strong>.
-            </p>
-
-            <p>
-                Exemplo:
-                <strong>100%</strong>,
-                <strong>110%</strong>,
-                <strong>115%</strong>,
-                <strong>120%</strong> do CDI.
-            </p>
-
-            <div style="
-                background:var(--surface2);
-                padding:18px;
-                border-radius:12px;
-                margin:20px 0;
-            ">
-
-                <h3 style="margin-bottom:15px">
-                    🧮 Calculadora
-                </h3>
-
-                <div class="form-row">
-
-                    <div class="form-group">
-                        <label>CDI Atual (% ao ano)</label>
-
-                        <input
-                            type="number"
-                            id="calcCDI"
-                            step="0.01"
-                            value="15"
-                            placeholder="15.00">
-                    </div>
-
-                    <div class="form-group">
-                        <label>% do CDI</label>
-
-                        <input
-                            type="number"
-                            id="calcPercentual"
-                            step="0.01"
-                            placeholder="115">
-                    </div>
-
-                </div>
-
-                <button
-                    class="btn btn-primary"
-                    style="width:100%;margin-top:8px"
-                    onclick="calcularCDI()">
-
-                    Calcular
-
-                </button>
-
-            </div>
-
-            <div id="resultadoCDI" style="display:none">
-
-                <div style="
-                    background:#1b1b1f;
-                    border-radius:12px;
-                    padding:20px;
-                    border:1px solid rgba(255,107,0,.25);
-                ">
-
-                    <h3 style="margin-bottom:20px">
-                        ✅ Resultado
-                    </h3>
-
-                    <div style="margin-bottom:15px">
-                        <strong>Rentabilidade Anual</strong>
-                    </div>
-
-                    <div
-                        id="resultadoAnual"
-                        style="
-                            font-size:32px;
-                            color:var(--orange2);
-                            font-weight:bold;
-                            text-align:center;
-                            margin-bottom:25px;
-                        ">
-                    </div>
-
-                    <div style="margin-bottom:15px">
-                        <strong>Rentabilidade Mensal</strong>
-                    </div>
-
-                    <div
-                        id="resultadoMensal"
-                        style="
-                            font-size:26px;
-                            color:var(--green);
-                            font-weight:bold;
-                            text-align:center;
-                            margin-bottom:30px;
-                        ">
-                    </div>
-
-                    <button
-                        class="btn btn-success"
-                        style="width:100%"
-                        onclick="usarValorCDI()">
-
-                        ✅ Usar este valor no investimento
-
-                    </button>
-
-                </div>
-
-            </div>
-
-            <hr style="margin:25px 0">
-
-            <h3>Como funciona?</h3>
-
-            <p>
-                Se o CDI estiver em
-                <strong>15%</strong>
-                e um investimento render
-                <strong>115% do CDI</strong>,
-                ele renderá:
-            </p>
-
-            <div style="
-                text-align:center;
-                font-size:22px;
-                color:var(--orange2);
-                font-weight:bold;
-                margin:18px 0;
-            ">
-
-                15 × 1,15 = 17,25% ao ano
-
-            </div>
-
-            <p>
-                Depois essa taxa é convertida automaticamente para o equivalente mensal usando juros compostos.
-            </p>
-
-        </div>
-
-    </div>
-</div>
 
 <!-- MODAL DETALHE INVESTIMENTO -->
 <div class="modal-overlay" id="modalInvDetalhe">
@@ -635,6 +443,37 @@
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeModal('modalTrocarSenha')">Cancelar</button>
       <button class="btn btn-primary" id="btnTsAcao" onclick="solicitarCodigoSenha()">Enviar código</button>
+    </div>
+  </div>
+</div>
+
+
+
+
+
+<!-- MODAL INFO RENDIMENTO -->
+<div class="modal-overlay" id="modalInfoRendimento">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header"><span>📈 Como o rendimento é calculado</span><button class="modal-close" onclick="closeModal('modalInfoRendimento')">×</button></div>
+    <div class="modal-body">
+      <p style="font-size:13.5px;color:var(--text2);line-height:1.6">
+        Todo dia útil, o sistema busca automaticamente o <strong>CDI</strong> e a <strong>Selic</strong> atuais e aplica o rendimento sobre o valor do seu investimento.
+      </p>
+      <p style="font-size:13.5px;color:var(--text2);line-height:1.6;margin-top:12px">
+        <strong>Se você preencher "% do CDI"</strong> (ex: 115 para uma Caixinha que rende 115% do CDI), o sistema calcula:
+        <br><span style="color:var(--orange2)">rendimento = CDI × (% do CDI ÷ 100)</span>
+      </p>
+      <p style="font-size:13.5px;color:var(--text2);line-height:1.6;margin-top:12px">
+        <strong>Se deixar em branco</strong>, o sistema assume 100% da Selic — bom para Tesouro Selic e produtos parecidos.
+      </p>
+      <div style="margin-top:16px;padding:12px 14px;background:var(--surface2);border-left:3px solid var(--orange);border-radius:var(--radius-sm)">
+        <p style="font-size:12.5px;color:var(--text3);line-height:1.5">
+          ⚠️ <strong>Este cálculo é uma estimativa</strong> e não substitui o extrato oficial da sua instituição financeira. Taxas reais podem variar por IOF, come-cotas, taxa de administração, condições específicas do produto e outros fatores não considerados aqui.
+        </p>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" onclick="closeModal('modalInfoRendimento')">Entendi</button>
     </div>
   </div>
 </div>
