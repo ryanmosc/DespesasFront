@@ -1,0 +1,27 @@
+name: Build e Push Docker
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v3
+
+      - name: Login no Docker Hub
+        run: echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+
+      - name: Build da imagem
+        run: docker build -t ryanmosc/despesas-front:${{ github.run_number }} .
+
+      - name: Tag latest
+        run: docker tag ryanmosc/despesas-front:${{ github.run_number }} ryanmosc/despesas-front:latest
+
+      - name: Push da imagem
+        run: |
+          docker push ryanmosc/despesas-front:${{ github.run_number }}
+          docker push ryanmosc/despesas-front:latest
