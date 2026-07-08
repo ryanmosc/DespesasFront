@@ -313,3 +313,19 @@ input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--orange);
     transform:scale(1.1);
     background:var(--orange2);
 }
+
+
+.autocomplete-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-sm);
+  max-height: 220px;
+  overflow-y: auto;
+  z-index: 300;
+  display: none;
+  box-shadow: 0 12px 32px rgba(0,0,0,.4);
+}

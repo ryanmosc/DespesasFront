@@ -396,6 +396,29 @@ async function viewDespesa(id){
   }catch(e){toast('Erro: '+e.message,'error');}
 }
 
+// ─── BUSCA POR DESCRIÇÃO ───
+let buscaDescTimeout = null;
+
+function onBuscaDescInput(){
+  clearTimeout(buscaDescTimeout);
+  const termo = document.getElementById('fBuscaDesc').value.trim();
+
+  buscaDescTimeout = setTimeout(async () => {
+    if(termo.length < 2){
+      loadDespesas(); // termo curto/vazio → volta pra listagem normal (com filtros/paginação)
+      return;
+    }
+    document.getElementById('despesasTable').innerHTML='<div class="loading"><div class="spinner"></div></div>';
+    try{
+      const resultados = await apiFetch('/api/despesas/autocomplete?desc='+encodeURIComponent(termo));
+      renderDespesasTable(resultados);
+      document.getElementById('pagination').innerHTML=''; // sem paginação nesse modo de busca
+    }catch(e){
+      document.getElementById('despesasTable').innerHTML=`<div class="empty"><div class="eico">⚠️</div><p>${formatApiError(e)}</p></div>`;
+    }
+  }, 300); // debounce de 300ms
+}
+
 // ─── COMPROVANTES ───
 async function uploadComprovante(despesaId,input){
   const file=input.files[0];if(!file)return;
