@@ -329,3 +329,71 @@ input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--orange);
   display: none;
   box-shadow: 0 12px 32px rgba(0,0,0,.4);
 }
+
+
+.export-dropdown-wrap { position: relative; }
+.export-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  min-width: 190px;
+  box-shadow: 0 16px 48px rgba(0,0,0,.5);
+  z-index: 200;
+  display: none;
+  overflow: hidden;
+  animation: dropIn .18s cubic-bezier(.34,1.56,.64,1);
+}
+.export-dropdown.open { display: block; }
+.export-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 16px;
+  font-size: 13px;
+  color: var(--text2);
+  cursor: pointer;
+  transition: background var(--transition);
+}
+.export-dropdown-item:hover { background: var(--surface2); color: var(--text); }
+
+.changelog-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 11.5px;
+  color: var(--text3);
+  cursor: pointer;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition);
+}
+.changelog-link:hover { color: var(--text2); background: var(--surface2); }
+.changelog-badge {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--orange);
+  box-shadow: 0 0 6px var(--orange);
+  flex-shrink: 0;
+}
+.changelog-entry { margin-bottom: 20px; }
+.changelog-entry:last-child { margin-bottom: 0; }
+.changelog-version {
+  display: flex; align-items: center; gap: 8px;
+  font-family: var(--font-d); font-weight: 800; font-size: 14px;
+  color: var(--orange2); margin-bottom: 4px;
+}
+.changelog-date { font-size: 11px; color: var(--text3); font-weight: 500; }
+.changelog-items { list-style: none; padding-left: 0; }
+.changelog-items li {
+  font-size: 13px; color: var(--text2);
+  padding: 4px 0 4px 16px;
+  position: relative;
+  line-height: 1.5;
+}
+.changelog-items li::before {
+  content: '•'; color: var(--orange); position: absolute; left: 0; font-weight: 700;
+}

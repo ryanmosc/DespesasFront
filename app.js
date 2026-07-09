@@ -804,7 +804,51 @@ function openModal(id){document.getElementById(id).classList.add('open');}
 function closeModal(id){document.getElementById(id).classList.remove('open');}
 document.querySelectorAll('.modal-overlay').forEach(m=>{m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');});});
 
-// ─── INIT ───
+// ─── CHANGELOG ───
+// Adicione uma entrada nova no TOPO do array a cada atualização.
+const CHANGELOG = [
+  {
+    versao: '1.4.0',
+    data: '08/07/2026',
+    itens: [
+      'Exportação de despesas para Excel (tudo ou por período)',
+      'Busca por descrição na aba de Despesas',
+      'Rendimento automático de investimentos via CDI/Selic',
+      'Registro de aportes em investimentos'
+    ]
+  },
+  // Exemplo de entrada anterior:
+  // { versao: '1.3.0', data: '01/06/2026', itens: ['Parcelas em aberto', 'Comparativo entre meses'] }
+];
+
+function renderChangelog(){
+  document.getElementById('changelogBody').innerHTML = CHANGELOG.map(v => `
+    <div class="changelog-entry">
+      <div class="changelog-version">v${v.versao} <span class="changelog-date">— ${v.data}</span></div>
+      <ul class="changelog-items">
+        ${v.itens.map(i => `<li>${i}</li>`).join('')}
+      </ul>
+    </div>
+  `).join('');
+}
+
+function openChangelog(){
+  renderChangelog();
+  openModal('modalChangelog');
+  if(CHANGELOG.length){
+    localStorage.setItem('dp_last_changelog_seen', CHANGELOG[0].versao);
+    document.getElementById('changelogBadge').style.display = 'none';
+  }
+}
+
+function checkChangelogBadge(){
+  if(!CHANGELOG.length) return;
+  const ultimaVista = localStorage.getItem('dp_last_changelog_seen');
+  if(ultimaVista !== CHANGELOG[0].versao){
+    document.getElementById('changelogBadge').style.display = 'inline-block';
+  }
+}
+
 document.addEventListener('DOMContentLoaded',()=>{
   populateMonthYear('dashMes','dashAno',loadDashboard);
   populateMonthYear('top5Mes','top5Ano',loadTop5);
@@ -815,6 +859,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   document.getElementById('cmpMesB').value=now.getMonth()===0?12:now.getMonth();
   document.getElementById('cmpAnoB').value=now.getMonth()===0?now.getFullYear()-1:now.getFullYear();
   if(loadSession()){onLoginSuccess();}
+  checkChangelogBadge(); // ← adicionar esta linha
 });
 
 window.addEventListener("load", () => {
@@ -825,6 +870,62 @@ window.addEventListener("load", () => {
     setTimeout(() => {
         popup.classList.remove("show");
     }, 5000); // some após 3 segundos
+});
+
+
+// ─── EXPORTAÇÃO EXCEL ───
+function downloadBlob(blob, filename){
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url), 1000);
+}
+
+async function exportarDespesasExcel(){
+  toast('Gerando Excel...','info');
+  try{
+    const blob = await apiFetch('/api/excel/despesas');
+    downloadBlob(blob, 'despesas.xlsx');
+    toast('Excel exportado com sucesso!','success');
+  }catch(e){
+    toast('Erro ao exportar: '+formatApiError(e),'error');
+  }
+}
+
+function openExportarPeriodoModal(){
+  document.getElementById('expInicio').value = '';
+  document.getElementById('expFim').value = '';
+  openModal('modalExportarPeriodo');
+}
+
+async function exportarDespesasPeriodoExcel(){
+  const inicio = document.getElementById('expInicio').value;
+  const fim = document.getElementById('expFim').value;
+  if(!inicio || !fim){ toast('Selecione as duas datas.','error'); return; }
+
+  const btn = document.getElementById('btnExportarPeriodo');
+  btn.disabled = true; btn.textContent = 'Exportando...';
+  try{
+    const blob = await apiFetch(`/api/excel/despesas/periodo?inicio=${inicio}&fim=${fim}`);
+    downloadBlob(blob, `despesas_${inicio}_a_${fim}.xlsx`);
+    toast('Excel exportado com sucesso!','success');
+    closeModal('modalExportarPeriodo');
+  }catch(e){
+    toast('Erro ao exportar: '+formatApiError(e),'error');
+  }finally{
+    btn.disabled = false; btn.textContent = '📊 Exportar';
+  }
+}
+function toggleExportDropdown(force){
+  const d = document.getElementById('exportDropdown');
+  d.classList.toggle('open', force!==undefined ? force : !d.classList.contains('open'));
+}
+document.addEventListener('click', e=>{
+  if(!document.getElementById('exportDropdownWrap')?.contains(e.target)) toggleExportDropdown(false);
 });
 
 

@@ -44,7 +44,7 @@
 
 <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
 
-<!-- SIDEBAR -->
+
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-logo">
     <div class="logo-icon">📉</div>
@@ -66,7 +66,11 @@
     <div class="nav-item" onclick="navigate('comparativo')"><span class="ni">⚖️</span> Comparativo</div>
   </nav>
   <div class="sidebar-footer">
+  <div class="changelog-link" onclick="openChangelog()">
+    <span>📝 Notas de atualização</span>
+    <span class="changelog-badge" id="changelogBadge" style="display:none"></span>
   </div>
+</div>
 </aside>
 
 <!-- MAIN -->
@@ -153,6 +157,21 @@
     </select>
 </div>
         <button class="btn btn-ghost btn-sm" onclick="clearFilters()" style="align-self:flex-end">✕ Limpar</button>
+        <div class="filter-group" style="align-self:flex-end;position:relative">
+  <div class="export-dropdown-wrap" id="exportDropdownWrap">
+    <button class="btn btn-ghost btn-sm" onclick="toggleExportDropdown()">
+      📊 Exportar Excel
+    </button>
+    <div class="export-dropdown" id="exportDropdown">
+      <div class="export-dropdown-item" onclick="toggleExportDropdown(false);exportarDespesasExcel()">
+        📄 Exportar tudo
+      </div>
+      <div class="export-dropdown-item" onclick="toggleExportDropdown(false);openExportarPeriodoModal()">
+        📅 Exportar por período
+      </div>
+    </div>
+  </div>
+</div>
       </div>
       <div class="card" style="padding:0;overflow:hidden">
         <div class="table-wrap" id="despesasTable"><div class="loading"><div class="spinner"></div></div></div>
@@ -478,6 +497,38 @@
   </div>
 </div>
 
+
+<!-- MODAL EXPORTAR PERÍODO -->
+<div class="modal-overlay" id="modalExportarPeriodo">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-header"><span>📅 Exportar por Período</span><button class="modal-close" onclick="closeModal('modalExportarPeriodo')">×</button></div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group"><label>Data Início</label><input type="date" id="expInicio"></div>
+        <div class="form-group"><label>Data Fim</label><input type="date" id="expFim"></div>
+      </div>
+      <p style="font-size:12.5px;color:var(--text3);margin-top:4px">
+        O arquivo Excel será baixado com todas as despesas no intervalo selecionado.
+      </p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modalExportarPeriodo')">Cancelar</button>
+      <button class="btn btn-primary" onclick="exportarDespesasPeriodoExcel()" id="btnExportarPeriodo">📊 Exportar</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- MODAL CHANGELOG -->
+<div class="modal-overlay" id="modalChangelog">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-header"><span>📝 Notas de Atualização</span><button class="modal-close" onclick="closeModal('modalChangelog')">×</button></div>
+    <div class="modal-body" id="changelogBody" style="max-height:60vh;overflow-y:auto"></div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" onclick="closeModal('modalChangelog')">Fechar</button>
+    </div>
+  </div>
+</div>
 
 <div id="toast"></div>
 <div id="popupTeste" class="popup-teste">
