@@ -60,7 +60,8 @@
     <div class="nav-item" onclick="navigate('parcelas')"><span class="ni">🔄</span> Parcelas em Aberto</div>
     <div class="nav-item" onclick="navigate('investimentos')"><span class="ni">📈</span> Investimentos</div>
     <div class="nav-label">Relatórios</div>
-    <div class="nav-item" onclick="navigate('relatorios')"><span class="ni">📉</span> Gastos por Mês</div>
+<div class="nav-item" onclick="navigate('extrato')"><span class="ni">💳</span> Extrato de Crédito</div>
+<div class="nav-item" onclick="navigate('relatorios')"><span class="ni">📉</span> Gastos por Mês</div>
     <div class="nav-item" onclick="navigate('top5')"><span class="ni">🏆</span> Top 5 Ranking</div>
     <div class="nav-item" onclick="navigate('categorias')"><span class="ni">🗂️</span> Por Categoria</div>
     <div class="nav-item" onclick="navigate('comparativo')"><span class="ni">⚖️</span> Comparativo</div>
@@ -206,6 +207,42 @@
         <div class="pagination" id="invPagination" style="padding:14px 18px"></div>
       </div>
     </section>
+
+
+
+
+
+<!-- EXTRATO CRÉDITO -->
+<section class="section" id="sec-extrato">
+  <div class="section-head">
+    <div><div class="page-eyebrow">Cartão de Crédito</div><h2 class="section-title">Extrato de Crédito</h2></div>
+    <div class="month-picker">
+      <select id="extratoMes"></select>
+      <select id="extratoAno" onchange="loadExtrato()"></select>
+    </div>
+  </div>
+
+  <div class="grid-4" id="extratoSummaryCards" style="margin-bottom:20px">
+    <div class="stat-card"><div class="loading"><div class="spinner"></div></div></div>
+    <div class="stat-card"><div class="loading"><div class="spinner"></div></div></div>
+    <div class="stat-card"><div class="loading"><div class="spinner"></div></div></div>
+    <div class="stat-card"><div class="loading"><div class="spinner"></div></div></div>
+  </div>
+
+  <div class="card" style="margin-bottom:20px">
+    <div class="stat-label" style="margin-bottom:14px">📋 Lançamentos do Mês</div>
+    <div id="extratoLancamentos"><div class="loading"><div class="spinner"></div></div></div>
+  </div>
+
+  <div class="card">
+    <div class="stat-label" style="margin-bottom:14px">🔮 Parcelas Futuras Comprometidas</div>
+    <div id="extratoParcelasFuturas"><div class="loading"><div class="spinner"></div></div></div>
+  </div>
+</section>
+
+
+
+
 
     <!-- RELATÓRIOS -->
     <section class="section" id="sec-relatorios">

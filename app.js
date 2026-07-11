@@ -186,7 +186,7 @@ function formatApiError(err){
 }
 
 // ─── NAVIGATION ───
-const sections={dashboard:'Dashboard',despesas:'Despesas',parcelas:'Parcelas em Aberto',investimentos:'Investimentos',relatorios:'Gastos por Mês',top5:'Top 5 Ranking',categorias:'Por Categoria',comparativo:'Comparativo'};
+const sections={dashboard:'Dashboard',despesas:'Despesas',parcelas:'Parcelas em Aberto',investimentos:'Investimentos',extrato:'Extrato de Crédito',relatorios:'Gastos por Mês',top5:'Top 5 Ranking',categorias:'Por Categoria',comparativo:'Comparativo'};
 function navigate(id){
   currentSection=id;
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
@@ -197,7 +197,7 @@ function navigate(id){
   closeSidebar();
   loaders[id]?.();
 }
-const loaders={dashboard:loadDashboard,despesas:loadDespesas,parcelas:loadParcelas,investimentos:loadInvestimentos,relatorios:loadRelatorios,top5:loadTop5,categorias:loadCategorias,comparativo:()=>{}};
+const loaders={dashboard:loadDashboard,despesas:loadDespesas,parcelas:loadParcelas,investimentos:loadInvestimentos,extrato:loadExtrato,relatorios:loadRelatorios,top5:loadTop5,categorias:loadCategorias,comparativo:()=>{}};
 
 function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebarOverlay').classList.toggle('open');}
 function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('sidebarOverlay').classList.remove('open');}
@@ -456,6 +456,81 @@ async function loadParcelas(){
     
     <div class="progress-bar"><div class="progress-fill" style="width:${perc}%"></div></div><div style="font-size:11px;color:var(--text3);margin-top:4px">${perc}% pago</div></div><div style="margin-left:20px;text-align:right;flex-shrink:0"><div style="font-size:12px;font-weight:700;color:var(--red)">${restantes}x de ${formatBRL(valorParcela)}</div><div style="font-size:22px;font-weight:800;color:var(--orange2)">${formatBRL(p.value)}</div><div style="font-size:11px;color:var(--text3);margin-top:2px">#${p.id}</div></div></div>`;}).join('')}</div>`;
   }catch(e){document.getElementById('parcelasContent').innerHTML=`<div class="empty"><div class="eico">⚠️</div><p>${e.message}</p></div>`;}
+}
+
+
+// ─── EXTRATO DE CRÉDITO ───
+async function loadExtrato(){
+  const mes=+document.getElementById('extratoMes').value, ano=+document.getElementById('extratoAno').value;
+  document.getElementById('extratoLancamentos').innerHTML='<div class="loading"><div class="spinner"></div></div>';
+  document.getElementById('extratoParcelasFuturas').innerHTML='<div class="loading"><div class="spinner"></div></div>';
+  try{
+    const d = await apiFetch(`/api/despesas/extrato?mes=${mes}&ano=${ano}`);
+    renderExtratoSummary(d);
+    renderExtratoLancamentos(d.lancamentos);
+    renderExtratoParcelasFuturas(d.parcelasFuturas, d.totalComprometido);
+  }catch(e){
+    document.getElementById('extratoSummaryCards').innerHTML=`<div class="stat-card" style="grid-column:1/-1"><div class="empty"><div class="eico">⚠️</div><p>${formatApiError(e)}</p></div></div>`;
+    document.getElementById('extratoLancamentos').innerHTML='';
+    document.getElementById('extratoParcelasFuturas').innerHTML='';
+  }
+}
+
+function renderExtratoSummary(d){
+  document.getElementById('extratoSummaryCards').innerHTML=`
+    <div class="stat-card"><div class="stat-icon orange">💳</div><div class="stat-label">Total da Fatura</div><div class="stat-value orange">${formatBRL(d.totalFatura)}</div><div class="stat-sub">${monthNames[d.mes-1]} / ${d.ano}</div></div>
+    <div class="stat-card"><div class="stat-icon green">✅</div><div class="stat-label">Já Pago</div><div class="stat-value green">${formatBRL(d.totalPago)}</div><div class="stat-sub">${d.quantidadeLancamentos} lançamento${d.quantidadeLancamentos!==1?'s':''} no mês</div></div>
+    <div class="stat-card"><div class="stat-icon red">⏳</div><div class="stat-label">Em Aberto</div><div class="stat-value red">${formatBRL(d.totalEmAberto)}</div><div class="stat-sub">${d.quantidadeParcelados} parcelado${d.quantidadeParcelados!==1?'s':''}</div></div>
+    <div class="stat-card"><div class="stat-icon purple">🔮</div><div class="stat-label">Comprometido Futuro</div><div class="stat-value purple">${formatBRL(d.totalComprometido)}</div><div class="stat-sub">Em parcelas dos próximos meses</div></div>
+  `;
+}
+
+function renderExtratoLancamentos(lancamentos){
+  if(!lancamentos?.length){
+    document.getElementById('extratoLancamentos').innerHTML=`<div class="empty"><div class="eico">💳</div><p>Nenhum lançamento no crédito para este período.</p></div>`;
+    return;
+  }
+  document.getElementById('extratoLancamentos').innerHTML=`
+    <table>
+      <thead><tr><th>Descrição</th><th>Categoria</th><th>Valor</th><th>Status</th><th>Data</th></tr></thead>
+      <tbody>
+        ${lancamentos.map(i=>`
+          <tr>
+            <td><span style="font-weight:600">${i.descricao}</span>${i.parcelado?`<span class="badge badge-gray" style="font-size:9px;margin-left:6px">${i.numeroParcela}/${i.totalParcelas}</span>`:''}</td>
+            <td><span style="color:var(--text2)">${catIcon[i.categoria]||'📦'} ${categoryLabel[i.categoria]||i.categoria}</span></td>
+            <td style="font-weight:700">${formatBRL(i.valor)}</td>
+            <td><span class="badge ${statusBadge[i.status]||'badge-gray'}">${i.status}</span></td>
+            <td style="color:var(--text3)">${formatDate(i.data)}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
+}
+
+function renderExtratoParcelasFuturas(parcelas, totalComprometido){
+  if(!parcelas?.length){
+    document.getElementById('extratoParcelasFuturas').innerHTML=`<div class="empty"><div class="eico">🎉</div><p>Nenhuma parcela comprometida para os próximos meses.</p></div>`;
+    return;
+  }
+  document.getElementById('extratoParcelasFuturas').innerHTML=`
+    <div style="display:flex;flex-direction:column;gap:12px">
+      ${parcelas.map(p=>`
+        <div class="parcela-card">
+          <div style="flex:1;min-width:0">
+            <div style="font-weight:700;font-size:15px;margin-bottom:4px">${catIcon[p.categoria]||'📦'} ${p.descricao}</div>
+            <div style="font-size:12px;color:var(--text3)">Parcela ${p.parcelaAtual} de ${p.totalParcelas} · ${p.parcelasRestantes} restante${p.parcelasRestantes!==1?'s':''}</div>
+            <div class="progress-bar"><div class="progress-fill" style="width:${Math.round((p.parcelaAtual/p.totalParcelas)*100)}%"></div></div>
+          </div>
+          <div style="margin-left:20px;text-align:right;flex-shrink:0">
+            <div style="font-size:12px;font-weight:700;color:var(--red)">${p.parcelasRestantes}x de ${formatBRL(p.valorParcela)}</div>
+            <div style="font-size:20px;font-weight:800;color:var(--orange2)">${formatBRL(p.totalRestante)}</div>
+            <div style="font-size:11px;color:var(--text3);margin-top:2px">#${p.despesaId}</div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
 }
 
 // ─── INVESTIMENTOS ───
@@ -855,6 +930,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   populateMonthYear('catMes','catAno',loadCategorias);
   populateMonthYear('cmpMesA','cmpAnoA',null);
   populateMonthYear('cmpMesB','cmpAnoB',null);
+  populateMonthYear('extratoMes','extratoAno',loadExtrato);
   const now=new Date();
   document.getElementById('cmpMesB').value=now.getMonth()===0?12:now.getMonth();
   document.getElementById('cmpAnoB').value=now.getMonth()===0?now.getFullYear()-1:now.getFullYear();
