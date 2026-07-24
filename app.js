@@ -133,7 +133,8 @@ function toggleUserDropdown(f){const d=document.getElementById('userDropdown');d
 document.addEventListener('click',e=>{if(!document.getElementById('userDropdownWrap')?.contains(e.target))toggleUserDropdown(false);});
 
 // ─── STATE ───
-let API_BASE = 'http://apidispesas.etheris.tec.br';
+//let API_BASE = 'http://apidispesas.etheris.tec.br';
+let API_BASE = 'https://apidispesas.moscardini.com.br';
 //let API_BASE = 'http://186.249.34.150:8089';
 //let API_BASE = 'http://localhost:8080';
 let currentPage=0, totalPages=0, invPage=0, invTotalPages=0;
